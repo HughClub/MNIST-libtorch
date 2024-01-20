@@ -36,7 +36,7 @@ Create .vscode/c_cpp_properties.json and set includePath. You can take the follo
 }
 ```
 
-## Training
+## training
 
 There are three relative files.
 - [main.cpp](main.cpp): show simple standard training pipeline here
@@ -52,5 +52,10 @@ mkdir build
 cd build
 cmake ..
 make
-./mnist # It depends on what you specify your data path in your code
+cd ..
+./build/mnist # It depends on what you specify your data path in your code
 ```
+
+## result
+
+Without specific seed, cmd:`./build/mnist 64 1e-3 128 150` could achive a test accuracy of 0.8726 with a model size of 216kB.
