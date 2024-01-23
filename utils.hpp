@@ -1,6 +1,7 @@
 #pragma once
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <torch/torch.h>
 #include <torch/data/datasets/base.h>
@@ -25,7 +26,7 @@ struct Arguments {
   // int steps=10000; // 10K steps
   double lr=1e-4;
   int hidden_size = 64;
-  int log_interval = 100;
+  int log_interval = -1; // -1 to disable
   int train_worker = 4, test_worker = 2;
 };
 
@@ -95,4 +96,14 @@ calc_mean_std(const std::initializer_list<datasets::MNIST>& datasets) {
   float mean = images.mean().item<float>();
   float std = images.std().item<float>();
   return DatasetStats{mean, std};
+}
+
+std::string syth_model_name(double acc, std::string const& prefix, Arguments const& args) {
+  std::stringstream ss;
+  ss << prefix << "_acc" << acc
+    << "_bs" << args.batch_size
+    << "_lr" << args.lr
+    << "_hs" << args.hidden_size
+    << "_eps" << args.epochs << ".pt";
+  return ss.str();
 }

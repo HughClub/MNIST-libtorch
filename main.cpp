@@ -53,8 +53,9 @@ int main(int argc, char**argv) {
   );
 
   // 3. get network and optimizer
-  auto model = std::make_shared<Net>(arguments.hidden_size);
+  auto model = std::make_shared<MLP>(arguments.hidden_size);
   auto optim = torch::optim::SGD(model->parameters(), arguments.lr);
+  std::string model_prefix = "MNIST_MLP";
 
   double last_acc = 0;
   // 4. train and test
@@ -68,7 +69,7 @@ int main(int argc, char**argv) {
       loss.backward();
       optim.step();
       optim.zero_grad();
-      if (batch_idx % arguments.log_interval == 0) {
+      if ((arguments.log_interval > 0) && (batch_idx % arguments.log_interval == 0)) {
         std::cout << "Train Epoch: " << epoch << " [" << batch_idx * arguments.batch_size << "/" <<
           train_set_size << " (" << 100. * batch_idx * arguments.batch_size / train_set_size << "%)]\t"
           << "Loss: " << loss.item<float>() << std::endl;
@@ -85,12 +86,14 @@ int main(int argc, char**argv) {
       auto pred = torch::argmax(logits, 1);
       correct += torch::sum(pred == batch.target).item<int64_t>();
     }
-    std::cout << "Test set: Average loss: " << test_loss / test_set_size << ", Accuracy: " <<
-      correct*100. / test_set_size<< "%" << std::endl;
+    std::cout << "Test set[" << epoch << '/' << arguments.epochs << "]: "
+      << "Average loss: " << test_loss / test_set_size << ", Accuracy: "
+      << correct*100. / test_set_size<< "%" << std::endl;
     last_acc = correct*100. / test_set_size;
   }
   // 5. save the model
-  std::string model_saving = "MNIST_MLP_"+std::to_string(last_acc)+".pt";
+  double threshold = 0.8;
+  std::string model_saving = syth_model_name(last_acc, model_prefix, arguments);
   torch::save(model, model_saving);
   return 0;
 }

@@ -19,7 +19,7 @@ LIBTORCH_INCLUDE="${YOUR_LIBTORCH_FOLDER}/include"
 DEEPER_LIBTORCH="${LIBTORCH_INCLUDE}/torch/csrc/api/include"
 ```
 
-Create .vscode/c_cpp_properties.json and set includePath. You can take the following as an example
+Create `.vscode/c_cpp_properties.json` and set includePath. You can take the following as an example
 
 ```json
 {
@@ -50,7 +50,7 @@ You can build and run your models like:
 ```bash
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_PREFIX_PATH=$YOUR_LIBTORCH_FOLDER ..
 make
 cd ..
 ./build/mnist # It depends on what you specify your data path in your code
@@ -58,4 +58,6 @@ cd ..
 
 ## result
 
-Without specific seed, cmd:`./build/mnist 64 1e-3 128 150` could achive a test accuracy of 0.8726 with a model size of 216kB.
+Without specific seed, cmd:`./build/mnist 512 1e-3 128 150` could achive a test accuracy of 0.8965 with a model size of 216kB (MLP).
+
+Without specific seed, cmd:`./build/mnist 512 1e-4 32 150` could achive a test accuracy of 0.9267 with a model size of 58kB (Conv).
