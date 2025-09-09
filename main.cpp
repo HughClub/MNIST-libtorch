@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <torch/torch.h>
 #include <torch/utils.h>
 #include <torch/data/dataloader.h>
@@ -6,8 +8,10 @@
 #include "net.hpp"
 #include "utils.hpp"
 
+using Clock = std::chrono::system_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
 using namespace torch::data::datasets;
-
 int main(int argc, char**argv) {
   Arguments arguments = Arguments();
   #pragma region "poor man's cmd parser"
@@ -58,9 +62,12 @@ int main(int argc, char**argv) {
   std::string model_prefix = "MNIST_MLP";
 
   double last_acc = 0;
+  milliseconds train_delta_ms(0), test_delta_ms(0);
+  auto time_start = Clock::now();
   // 4. train and test
   for (size_t epoch = 0; epoch < arguments.epochs; ++epoch) {
     // train model
+    auto && time_train_start = Clock::now();
     model->train();
     size_t batch_idx = 0;
     for (const auto& batch : *train_loader) {
@@ -76,7 +83,9 @@ int main(int argc, char**argv) {
       }
       batch_idx++;
     }
+    train_delta_ms += duration_cast<milliseconds>(Clock::now() - time_train_start);
     // test
+    auto && time_test_start = Clock::now();
     double test_loss = 0;
     size_t correct = 0;
     model->eval();
@@ -90,10 +99,18 @@ int main(int argc, char**argv) {
       << "Average loss: " << test_loss / test_set_size << ", Accuracy: "
       << correct*100. / test_set_size<< "%" << std::endl;
     last_acc = correct*100. / test_set_size;
+    test_delta_ms += duration_cast<milliseconds>(Clock::now() - time_test_start);
   }
+  // timer logging
+  std::cout << "Training time: " << train_delta_ms.count()*1.0/std::milli::den << "s" << std::endl; // 31.589s
+  std::cout << "Testing time: " << test_delta_ms.count()*1.0/std::milli::den << "s" << std::endl; // 5.834s
+
   // 5. save the model
   double threshold = 0.8;
   std::string model_saving = syth_model_name(last_acc, model_prefix, arguments);
   torch::save(model, model_saving);
+
+  auto total_time = Clock::now() - time_start;
+  std::cout << "Total time: " << total_time.count()*1.0/std::nano::den << "s" << std::endl; // 37.5868s
   return 0;
 }
